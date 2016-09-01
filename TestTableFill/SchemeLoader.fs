@@ -5,7 +5,9 @@ open MySql.Data.MySqlClient
 let load host user password scheme =
     let connectionString = sprintf "Server=%s;Database=%s;Uid=%s;Pwd=%s;" host scheme user password
     use conn = new MySqlConnection(connectionString)
-    conn.Open()    
+    sprintf "Opening connection to database (%s)." host  |> stderr.WriteLine  
+    conn.Open()
+    sprintf "Reading tables from scheme (%s)." scheme |> stderr.WriteLine 
     let tables =
       [
         use comm = conn.CreateCommand()
@@ -16,7 +18,8 @@ let load host user password scheme =
             yield rdr.GetString(0)]
     let columnsInfo =
         tables |> List.map
-            (fun table ->       
+            (fun table ->  
+                sprintf "Reading columns from %s." table |> stderr.WriteLine     
                 let columnQuery = sprintf """SELECT DISTINCTROW c.COLUMN_NAME,c.DATA_TYPE, c.character_maximum_length, c.numeric_precision,c.numeric_scale, c.is_nullable
                                                ,CASE WHEN pk.COLUMN_NAME IS NOT NULL THEN 'YES' ELSE 'NO' END AS 'Primary'
                                   FROM INFORMATION_SCHEMA.COLUMNS c
@@ -65,6 +68,7 @@ let load host user password scheme =
                             match primary with
                             |false ->   {Name = name; Type=dt;Primary=No;Nullable=nullable}
                             |true ->
+                                sprintf "Getting value for primary key (%s)." name |> stderr.WriteLine 
                                 use comm = conn.CreateCommand()
                                 let query = sprintf """SELECT COALESCE(MAX(%s),0) FROM %s""" name table
                                 comm.CommandText<-query
@@ -89,11 +93,13 @@ let load host user password scheme =
                                   ON KCU1.CONSTRAINT_CATALOG = RC.CONSTRAINT_CATALOG
                                   AND KCU1.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA
                                   AND KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME"""
+                sprintf "Getting relationships for %s" t |> stderr.WriteLine
                 {
                     Name=t
                     Columns=c
                     Parents=
                         [
+                            
                             use comm = conn.CreateCommand()
                             comm.CommandText <- sprintf "%s WHERE RC.TABLE_NAME = '%s'" baseQuery t
                             use rdr = comm.ExecuteReader()

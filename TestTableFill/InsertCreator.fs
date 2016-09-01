@@ -31,7 +31,7 @@ let insertCreator names =
                 |No,Time -> tGen()
                 |No,TimeStamp -> dttGen()
                 |No,Unknown -> "null"                
-            (name,value))
+            (name|> sprintf "`%s`" ,value |> sprintf "'%s'"))
         |> List.unzip |> (fun f (v1,v2) -> (f v1, f v2)) (String.concat ", ")
         ||> sprintf "INSERT INTO %s (%s) VALUES (%s);" tab
 
