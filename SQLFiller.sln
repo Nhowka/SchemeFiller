@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TestTableFill", "TestTableFill\TestTableFill.fsproj", "{E55D31A6-07D1-4946-80CF-BB68463C0817}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SchemeFiller", "TestTableFill\SchemeFiller.fsproj", "{E55D31A6-07D1-4946-80CF-BB68463C0817}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
