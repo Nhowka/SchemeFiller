@@ -2,8 +2,8 @@
 open Definitions
 open MySql.Data.MySqlClient
 
-let load host user password scheme =
-    let connectionString = sprintf "Server=%s;Database=%s;Uid=%s;Pwd=%s;" host scheme user password
+let load host port user password scheme =
+    let connectionString = sprintf "Server=%s;Port=%i;Database=%s;Uid=%s;Pwd=%s;" host port scheme user password
     use conn = new MySqlConnection(connectionString)
     sprintf "Opening connection to database (%s)." host  |> stderr.WriteLine  
     conn.Open()
@@ -88,9 +88,9 @@ let load host user password scheme =
                             comm.CommandText<- query
                             use rdr = comm.ExecuteReader()
                             if rdr.Read() then
-                                {Name=name;Type=dt;Primary=primary;Foreign=Yes(rdr.GetString(0),rdr.GetString(1));Nullable=nullable}
+                                {Name=name;Type=dt;Primary=primary;Foreign=Foreign.Yes(rdr.GetString(0),rdr.GetString(1));Nullable=nullable}
                             else
-                                {Name=name;Type=dt;Primary=primary;Foreign=No;Nullable=nullable}
+                                {Name=name;Type=dt;Primary=primary;Foreign=Foreign.No;Nullable=nullable}
                    )
                        }
                 )

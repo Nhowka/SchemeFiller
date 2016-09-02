@@ -1,9 +1,9 @@
 ﻿module Definitions
-type Primary =
-    | Yes of (unit->string)
-    | No
 type Foreign =
     | Yes of (string*string)
+    | No
+type Primary =
+    | Yes of (unit->string)
     | No
 
 type DataTypes =
