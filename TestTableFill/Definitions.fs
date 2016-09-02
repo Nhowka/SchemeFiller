@@ -14,6 +14,5 @@ type DataTypes =
     | Date | Time | TimeStamp | DateTime
     | Unknown
 
-type Column = {Name:string;Type:DataTypes;Primary:Primary;Foreign:Foreign;Nullable:bool}
-type Relation = {ChildTable:string;ChildColumn:string;ParentTable:string;ParentColumn:string}
+type Column = {Table:string;Name:string;Type:DataTypes;Primary:Primary;Foreign:Foreign;Nullable:bool}
 type Table = {Name:string;Columns:Column list}

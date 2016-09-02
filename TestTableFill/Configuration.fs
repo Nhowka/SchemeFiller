@@ -11,7 +11,8 @@ type Config =
         Password:string
         Database:string option
     }
-    static member private help = """Usage: SchemeFiller [-h|--help||/?] [-s|--StringList stringList.txt] [-h|--Host host] [-p|--Port port] [-u|--User user] [-P|--Password password] [-d|--Database database] 
+    static member private help = "Usage: SchemeFiller [-h|--help|/?] [-s|--StringList stringList.txt] [-h|--Host host] [-p|--Port port] [-u|--User user] [-P|--Password password] [-d|--Database database] 
+
 -h | --help | /? \t\t Show this menu
 -s | --StringList\t\t Set the input file for the strings used to fill the tables
 -h | --Host      \t\t Choose the host address (default 127.0.0.1)
@@ -20,7 +21,7 @@ type Config =
 -P | --Password  \t\t Choose the password (default BLANK)
 -d | --Database  \t\t Choose the schema to be filled
 
-The string list will is expected to be a text file with one string per line. If not set a list will be generated with strings with 5 to 10 random alpha-characters."""
+The string list will is expected to be a text file with one string per line. If not set a list will be generated with strings with 5 to 10 random alpha-characters."
     static member defaultConfig =
             { 
                ShowHelp=false
@@ -49,7 +50,7 @@ The string list will is expected to be a text file with one string per line. If 
         match Config.ParseArgs args with
         |{WrongArgument=Some a} -> sprintf "Wrong argument: %s\nUse /?, -h or --help to see a list of supported commands." a |> stderr.Write
         |{ShowHelp=true} -> stderr.Write Config.help
-        |{Database=None} -> stderr.Write "You need to set a database/schema."
+        |{Database=None} -> stderr.Write "You need to set a database/schema. Use -h for see usage example."
         |{Host=h;Port=p;Username=u;Password=pwd;Database=Some d;StringList=s} ->
             let creator =
                 match s with
