@@ -16,8 +16,7 @@ let load host user password scheme =
         use rdr = comm.ExecuteReader()        
         while rdr.Read() do
             yield rdr.GetString(0)]
-    let columnsInfo =
-        tables |> List.map
+    tables |> List.map
             (fun table ->  
                 sprintf "Reading columns from %s." table |> stderr.WriteLine     
                 let columnQuery = sprintf """SELECT DISTINCTROW c.COLUMN_NAME,c.DATA_TYPE, c.character_maximum_length, c.numeric_precision,c.numeric_scale, c.is_nullable
@@ -35,7 +34,7 @@ let load host user password scheme =
                                               AND c.TABLE_NAME = pk.TABLE_NAME
                                               AND c.COLUMN_NAME = pk.COLUMN_NAME
                                   WHERE c.TABLE_SCHEMA = '%s' AND c.TABLE_NAME = '%s'""" scheme table          
-                (table,[
+                {Name=table;Columns=[
                         use comm = conn.CreateCommand()
                         
                         comm.CommandText<-columnQuery
@@ -66,7 +65,7 @@ let load host user password scheme =
                     ]|> List.map
                         (fun (name,dt,primary,nullable) ->
                             match primary with
-                            |false ->   {Name = name; Type=dt;Primary=No;Nullable=nullable}
+                            |false ->   (name, dt,Primary.No,nullable)
                             |true ->
                                 sprintf "Getting value for primary key (%s)." name |> stderr.WriteLine 
                                 use comm = conn.CreateCommand()
@@ -74,48 +73,30 @@ let load host user password scheme =
                                 comm.CommandText<-query
                                 use rdr = comm.ExecuteReader()
                                 if rdr.Read() then
-                                    {Name = name; Type=dt;Primary=Yes (Generators.sequentialGenerator (rdr.GetInt32(0)));Nullable=nullable}
+                                    (name,dt,Primary.Yes (Generators.sequentialGenerator (rdr.GetInt32(0))),nullable)
                                 else
-                                    {Name = name; Type=dt;Primary=No;Nullable=nullable}
-                            )
-                       )
+                                    (name, dt,Primary.No,nullable)
+                   )|> List.map
+                        (fun (name, dt, primary, nullable)->
+                            let query= sprintf """SELECT RC.REFERENCED_TABLE_NAME AS REFERENCED_TABLE_NAME,
+                             KCU1.REFERENCED_COLUMN_NAME AS FK_CONSTRAINT_SCHEMA
+                             FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS RC
+                             INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU1 ON KCU1.CONSTRAINT_CATALOG = RC.CONSTRAINT_CATALOG
+                             AND KCU1.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA AND KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME
+                             WHERE RC.TABLE_NAME = '%s' and KCU1.COLUMN_NAME = '%s'""" table name
+                            use comm = conn.CreateCommand()
+                            comm.CommandText<- query
+                            use rdr = comm.ExecuteReader()
+                            if rdr.Read() then
+                                {Name=name;Type=dt;Primary=primary;Foreign=Yes(rdr.GetString(0),rdr.GetString(1));Nullable=nullable}
+                            else
+                                {Name=name;Type=dt;Primary=primary;Foreign=No;Nullable=nullable}
+                   )
+                       }
                 )
-    columnsInfo
-        |> List.map
-            (fun (t,c) ->
-                let baseQuery= """SELECT
-                                  RC.TABLE_NAME AS FK_TABLE_NAME,
-                                  KCU1.COLUMN_NAME AS FK_COLUMN_NAME,
-                                  RC.REFERENCED_TABLE_NAME AS REFERENCED_TABLE_NAME,
-                                  KCU1.REFERENCED_COLUMN_NAME AS FK_CONSTRAINT_SCHEMA
-                                  FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS RC
-                                  INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU1
-                                  ON KCU1.CONSTRAINT_CATALOG = RC.CONSTRAINT_CATALOG
-                                  AND KCU1.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA
-                                  AND KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME"""
-                sprintf "Getting relationships for %s" t |> stderr.WriteLine
-                {
-                    Name=t
-                    Columns=c
-                    Parents=
-                        [
-                            
-                            use comm = conn.CreateCommand()
-                            comm.CommandText <- sprintf "%s WHERE RC.TABLE_NAME = '%s'" baseQuery t
-                            use rdr = comm.ExecuteReader()
-                            while rdr.Read() do
-                                yield {ChildTable=rdr.GetString(0);ChildColumn=rdr.GetString(1);ParentTable=rdr.GetString(2);ParentColumn=rdr.GetString(3)}
-                        ]
-                    Children=
-                        [
-                            use comm = conn.CreateCommand()
-                            comm.CommandText <- sprintf "%s WHERE RC.REFERENCED_TABLE_NAME = '%s'" baseQuery t
-                            use rdr = comm.ExecuteReader()
-                            while rdr.Read() do
-                                yield {ChildTable=rdr.GetString(0);ChildColumn=rdr.GetString(1);ParentTable=rdr.GetString(2);ParentColumn=rdr.GetString(3)}
-                        ]
-                }
-               )
+    
+            
+    
     
                     
 
