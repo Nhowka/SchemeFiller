@@ -14,3 +14,5 @@ let create insertCreator tables =
         nIns::dIns,nKey
     tables
     |> List.fold innerCreate ([], Map.empty)
+    |> fst
+    |> List.collect id
