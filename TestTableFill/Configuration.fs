@@ -59,4 +59,4 @@ The string list will is expected to be a text file with one string per line. If 
                 | Some f -> File.ReadAllLines(f)
                 | None -> [||]
                 |> InsertCreator.insertCreator
-            SchemeLoader.load h p u pwd d |> Seq.iter (creator >> (printfn "%s"))
+            SchemeLoader.load h p u pwd d |> ForeignCreator.create creator |> Seq.iter (printfn "%s")

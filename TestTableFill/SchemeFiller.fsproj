@@ -25,6 +25,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\TestTableFill.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
+    <StartArguments>-d dbrecebimentonovo</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -59,6 +60,7 @@
     <Compile Include="Definitions.fs" />
     <Compile Include="SchemeLoader.fs" />
     <Compile Include="InsertCreator.fs" />
+    <Compile Include="ForeignCreator.fs" />
     <Compile Include="Configuration.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
