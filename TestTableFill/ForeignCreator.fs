@@ -13,11 +13,14 @@ let create insertCreator n tables =
             |> Set.ofList
             |> Seq.map (fun n -> namedMap |> Map.find n)
             |> Seq.fold innerCreate (ins,key)
-        let nIns, nKey = insertCreator tab dKey
-        nIns::dIns,nKey
-    tables
-    |> List.replicate n
-    |> List.collect id
+        let rec innerCreator x (dIns,dKey) =
+            match x with
+            |0 -> dIns,dKey
+            |_ -> 
+                let nIns,nKey =insertCreator tab dKey
+                (nIns::dIns,nKey)|> innerCreator (x-1)
+        innerCreator n (ins, key)
+    tables    
     |> List.fold innerCreate ([], Map.empty)
     |> fst
     |> List.collect id
