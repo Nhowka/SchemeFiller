@@ -9,9 +9,10 @@ type Config =
       Port : int
       Username : string
       Password : string
-      Database : string option }
+      Database : string option
+      Iterations: int }
     static member private help = 
-        "Usage: SchemeFiller [-h|--help|/?] [-s|--StringList stringList.txt] [-h|--Host host] [-p|--Port port] [-u|--User user] [-P|--Password password] [-d|--Database database]
+        "Usage: SchemeFiller [-h|--help|/?] [-s|--StringList stringList.txt] [-h|--Host host] [-p|--Port port] [-u|--User user] [-P|--Password password] [-d|--Database database] [-i|--Iterations n]
 
 -h | --help | /? \t\t Show this menu
 -s | --StringList\t\t Set the input file for the strings used to fill the tables
@@ -20,6 +21,7 @@ type Config =
 -u | --User      \t\t Choose the username (default root)
 -P | --Password  \t\t Choose the password (default BLANK)
 -d | --Database  \t\t Choose the schema to be filled
+-i | --Iterations\t\t Choose the number of elements to be created
 
 The string list will is expected to be a text file with one string per line. If not set a list will be generated with strings with 5 to 10 random alpha-characters."
     
@@ -31,7 +33,8 @@ The string list will is expected to be a text file with one string per line. If 
           Port = 3306
           Username = "root"
           Password = ""
-          Database = None }
+          Database = None
+          Iterations = 1 }
     
     static member private ParseArgs args = 
         let rec parse config = 
@@ -44,6 +47,7 @@ The string list will is expected to be a text file with one string per line. If 
             | "-h" :: h :: a | "--Host" :: h :: a -> parse { config with Host = h } a
             | "-p" :: p :: a | "--Port" :: p :: a -> parse { config with Port = int p } a
             | "-P" :: p :: a | "--Password" :: p :: a -> parse { config with Password = p } a
+            | "-i" :: i :: a | "--Iterations" :: i :: a -> parse { config with Iterations = int i } a
             | a :: _ -> { config with WrongArgument = Some a }
         (args |> Seq.toList) |> parse Config.defaultConfig
     
@@ -53,10 +57,10 @@ The string list will is expected to be a text file with one string per line. If 
             sprintf "Wrong argument: %s\nUse /?, -h or --help to see a list of supported commands." a |> stderr.Write
         | { ShowHelp = true } -> stderr.Write Config.help
         | { Database = None } -> stderr.Write "You need to set a database/schema. Use -h for see usage example."
-        | { Host = h; Port = p; Username = u; Password = pwd; Database = Some d; StringList = s } -> 
+        | { Host = h; Port = p; Username = u; Password = pwd; Database = Some d; StringList = s; Iterations = i } -> 
             let creator = 
                 match s with
                 | Some f -> File.ReadAllLines(f)
                 | None -> [||]
                 |> InsertCreator.insertCreator
-            SchemeLoader.load h p u pwd d |> ForeignCreator.create creator |> Seq.iter (printfn "%s")
+            SchemeLoader.load h p u pwd d |> ForeignCreator.create creator i |> Seq.iter (printfn "%s")
