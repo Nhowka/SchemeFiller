@@ -17,10 +17,11 @@ let create insertCreator n tables =
             match x with
             |0 -> dIns,dKey
             |_ -> 
-                let nIns,nKey =insertCreator tab dKey
+                let nIns,nKey = insertCreator tab dKey
                 (nIns::dIns,nKey)|> innerCreator (x-1)
         innerCreator n (ins, key)
     tables    
     |> List.fold innerCreate ([], Map.empty)
     |> fst
+    |> List.rev
     |> List.collect id
