@@ -5,6 +5,8 @@ let sequentialGenerator first =
         n <- n + 1
         n |> string
 
+let textualField s = sprintf "'%s'" s
+
 let decimalGenerator() = 
     let r = System.Random()
     let getMax n = Seq.init n (fun _ -> 10m) |> Seq.fold (*) 1m
@@ -22,16 +24,16 @@ let integerGenerator() =
 
 let dateGenerator() = 
     let r = System.Random()
-    fun () -> System.DateTime.Today.AddHours((r.NextDouble() - 0.5) * 58000.).ToString("yyyy-MM-dd")
+    fun () -> System.DateTime.Today.AddHours((r.NextDouble() - 0.5) * 58000.).ToString("yyyy-MM-dd") |> textualField
 
 let timeGenerator() = 
     let r = System.Random()
-    fun () -> System.DateTime.Today.AddHours((r.NextDouble() - 0.5) * 58000.).ToString("hh:mm:ss")
+    fun () -> System.DateTime.Today.AddHours((r.NextDouble() - 0.5) * 58000.).ToString("hh:mm:ss") |> textualField
 
 let dateTimeGenerator() = 
     let dGen = dateGenerator()
     let tGen = timeGenerator()
-    fun () -> dGen() + " " + tGen()
+    fun () -> (dGen() + " " + tGen()) |> textualField
 
 let characterGenerator() = 
     let r = System.Random()
@@ -64,4 +66,4 @@ let stringGenerator names =
         |> Seq.truncate maxlen
         |> Seq.toArray
         |> System.String
-        |> string
+        |> string |> textualField

@@ -65,7 +65,7 @@ let insertCreator names =
                         | No, Time, _ -> tGen(), keyCache, fkeys
                         | No, TimeStamp, _ -> dttGen(), keyCache, fkeys
                         | No, Unknown, _ -> "null", keyCache, fkeys
-                    construct ((name |> sprintf "`%s`", value |> sprintf "'%s'") :: fields) b newCache newFks
+                    construct ((name |> sprintf "`%s`", value |> sprintf "%s") :: fields) b newCache newFks
 
             let values, kCache = construct [] c keyCache foreign
 
